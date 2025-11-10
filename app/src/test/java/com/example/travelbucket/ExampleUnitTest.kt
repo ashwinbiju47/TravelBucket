@@ -1,4 +1,4 @@
-package com.example.TravelBucket
+package com.example.travelbucket
 
 import org.junit.Test
 
