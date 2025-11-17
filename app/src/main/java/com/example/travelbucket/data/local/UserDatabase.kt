@@ -6,12 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [User::class],
-    version = 2,       // bumped version
+    entities = [User::class, CountrySearchEntity::class, CountryInfoEntity::class],
+    version = 2,
     exportSchema = false
 )
 abstract class UserDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun countryDao(): CountryDao
 
     companion object {
         @Volatile private var INSTANCE: UserDatabase? = null
@@ -23,7 +24,7 @@ abstract class UserDatabase : RoomDatabase() {
                     UserDatabase::class.java,
                     "user_db"
                 )
-                    .fallbackToDestructiveMigration()   // clears old schema conflicts
+                    .fallbackToDestructiveMigration()   // ok for dev; consider proper migrations later
                     .build()
 
                 INSTANCE = instance
