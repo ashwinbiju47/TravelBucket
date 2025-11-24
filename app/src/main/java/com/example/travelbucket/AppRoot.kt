@@ -62,6 +62,7 @@ fun AppRoot() {
                 onLogout = {
                     // whatever you do for logout
                     authViewModel.logout()
+                    loggedInUser = null
                 }
             )
 
