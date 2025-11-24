@@ -213,7 +213,7 @@ fun AuthScreen(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            text = if (isSignUp) "Enter" else "Access",
+                            text = if (isSignUp) "Enter" else "Login",
                             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
                         )
                     }
@@ -225,7 +225,7 @@ fun AuthScreen(
                         error = null
                     }) {
                         Text(
-                            if (isSignUp) "Already registered? Access system"
+                            if (isSignUp) "Already registered? Login"
                             else "New user? Create account",
                             color = neonGreen
                         )
