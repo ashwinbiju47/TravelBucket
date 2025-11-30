@@ -6,7 +6,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import com.example.travelbucket.ui.theme.SurfaceVariant
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -85,10 +91,20 @@ fun HomeScreen(
         Spacer(Modifier.height(20.dp))
 
         // Search Bar
+
         OutlinedTextField(
             value = query,
             onValueChange = { viewModel.updateQuery(it) },
             placeholder = { Text("Search country") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.updateQuery("") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear")
+                    }
+                }
+            },
+            shape = RoundedCornerShape(24.dp),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -115,35 +131,69 @@ fun HomeScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        // TABLE HEADER
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Country", modifier = Modifier.weight(1f))
-            Text("Population", modifier = Modifier.weight(1f))
-            Text("Currency", modifier = Modifier.weight(1f))
-        }
+        if (history.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No recent searches yet.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(history) { entry ->
+                    Card(
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(containerColor = SurfaceVariant),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp)
+                        ) {
+                            Text(
+                                text = entry.countryName,
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
 
-        Divider()
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Population",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = formatCompact(entry.population.toLong()),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
 
-        // TABLE BODY
-        LazyColumn {
-            items(history) { entry ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(entry.countryName, modifier = Modifier.weight(1f))
-                    Text(
-                        text = formatCompact(entry.population.toLong()),
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(entry.currency, modifier = Modifier.weight(1f))
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                Icon(
+                                    imageVector = Icons.Default.AttachMoney,
+                                    contentDescription = "Currency",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = entry.currency,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    }
                 }
-                Divider()
             }
         }
     }

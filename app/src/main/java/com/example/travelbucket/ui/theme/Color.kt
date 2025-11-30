@@ -19,6 +19,7 @@ val LightBackground = OffWhite
 val LightSurface = Color(0xFFFFFFFF)
 val DarkBackground = Color(0xFF121212)
 val DarkSurface = Color(0xFF1E1E1E)
+val SurfaceVariant = Color(0xFFF0F2F5)
 
 // Status colors
 val ErrorRed = Color(0xFFD32F2F)
