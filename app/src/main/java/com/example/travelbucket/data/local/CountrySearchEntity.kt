@@ -10,5 +10,6 @@ data class CountrySearchEntity(
     val countryName: String,
     val population: Int,
     val currency: String,
+    val estimatedCost: Double = 0.0,
     val timestamp: Long = System.currentTimeMillis()
 )

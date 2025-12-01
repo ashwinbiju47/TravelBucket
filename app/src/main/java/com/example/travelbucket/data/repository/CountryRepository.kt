@@ -28,12 +28,14 @@ class CountryRepository(
         val population = remote.population ?: 0L
 
         // 3. Build entity
+        val estimatedCost = (50..500).random().toDouble()
         val entity = CountryInfoEntity(
             countryName = name,
             userId = userId,
             population = population,
             currency = currency,
-            description = remote.region ?: "Unknown region"
+            description = remote.region ?: "Unknown region",
+            estimatedCost = estimatedCost
         )
 
         // 4. Insert user-specific info into DB
@@ -45,7 +47,8 @@ class CountryRepository(
                 userId = userId,
                 countryName = name,
                 population = population.toInt(),
-                currency = currency
+                currency = currency,
+                estimatedCost = estimatedCost
             )
         )
 

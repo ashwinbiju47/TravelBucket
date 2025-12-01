@@ -5,6 +5,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
 import com.example.travelbucket.data.local.User
 import com.example.travelbucket.data.remote.ServiceLocator
 import com.example.travelbucket.ui.auth.AuthScreen
@@ -48,24 +53,77 @@ fun AppRoot() {
         if (loggedInUser == null) {
             AuthScreen(onAuthSuccess = { loggedInUser = it })
         } else {
-            // inject your CountryViewModel here
-            val countryViewModel: CountryViewModel = viewModel(
-                factory = CountryViewModelFactory(
-                    ServiceLocator.provideCountryRepository(context, loggedInUser!!.email)
-                )
+            val navController = rememberNavController()
+            val userDatabase = com.example.travelbucket.data.local.UserDatabase.getDatabase(context)
+            val dreamDestinationRepository = com.example.travelbucket.data.repository.DreamDestinationRepository(
+                userDatabase.dreamDestinationDao(),
+                loggedInUser!!.email
+            )
+            val dreamDestinationViewModel: com.example.travelbucket.ui.dreamdestinations.DreamDestinationViewModel = viewModel(
+                factory = com.example.travelbucket.ui.dreamdestinations.DreamDestinationViewModelFactory(dreamDestinationRepository)
             )
 
-
-            HomeScreen(
-                viewModel = countryViewModel,
-                email = loggedInUser!!.email,
-                onLogout = {
-                    // whatever you do for logout
-                    authViewModel.logout()
-                    loggedInUser = null
+            NavHost(
+                navController = navController,
+                startDestination = "home"
+            ) {
+                composable("home") {
+                    val countryViewModel: CountryViewModel = viewModel(
+                        factory = CountryViewModelFactory(
+                            ServiceLocator.provideCountryRepository(context, loggedInUser!!.email)
+                        )
+                    )
+                    HomeScreen(
+                        viewModel = countryViewModel,
+                        email = loggedInUser!!.email,
+                        onLogout = {
+                            authViewModel.logout()
+                            loggedInUser = null
+                        },
+                        onDreamDestinationsClick = {
+                            navController.navigate("dream_destinations")
+                        }
+                    )
                 }
-            )
 
+                composable("dream_destinations") {
+                    com.example.travelbucket.ui.dreamdestinations.DreamDestinationsListScreen(
+                        viewModel = dreamDestinationViewModel,
+                        onAddClick = {
+                            navController.navigate("camera")
+                        }
+                    )
+                }
+
+                composable("camera") {
+                    com.example.travelbucket.ui.dreamdestinations.CameraScreen(
+                        onImageCaptured = { path ->
+                            val encodedPath = java.net.URLEncoder.encode(path, "UTF-8")
+                            navController.navigate("dream_destination_form/$encodedPath")
+                        },
+                        onError = {
+                            // Handle error
+                        }
+                    )
+                }
+
+                composable(
+                    route = "dream_destination_form/{photoPath}",
+                    arguments = listOf(navArgument("photoPath") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val photoPath = backStackEntry.arguments?.getString("photoPath") ?: ""
+                    com.example.travelbucket.ui.dreamdestinations.DreamDestinationFormScreen(
+                        photoPath = photoPath,
+                        onSave = { name, notes ->
+                            dreamDestinationViewModel.addDestination(name, notes, photoPath)
+                            navController.popBackStack("dream_destinations", inclusive = false)
+                        },
+                        onCancel = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            }
         }
     }
 }

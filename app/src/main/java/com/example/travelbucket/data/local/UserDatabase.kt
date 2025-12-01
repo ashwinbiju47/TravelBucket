@@ -6,13 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [User::class, CountrySearchEntity::class, CountryInfoEntity::class],
-    version = 2,
+    entities = [User::class, CountryInfoEntity::class, CountrySearchEntity::class, DreamDestination::class],
+    version = 2, // Increment version
     exportSchema = false
 )
 abstract class UserDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun countryDao(): CountryDao
+    abstract fun dreamDestinationDao(): DreamDestinationDao
 
     companion object {
         @Volatile private var INSTANCE: UserDatabase? = null

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import com.example.travelbucket.ui.theme.SurfaceVariant
@@ -28,11 +29,13 @@ fun formatCompact(number: Long): String {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: CountryViewModel,
     email: String,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onDreamDestinationsClick: () -> Unit
 ) {
     val query by viewModel.query.collectAsState()
     val result by viewModel.countryInfo.collectAsState()
@@ -90,28 +93,81 @@ fun HomeScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        // Search Bar
+        // Popular Countries List
+        val countries = listOf(
+            "United States", "United Kingdom", "Canada", "Australia", "Germany",
+            "France", "Italy", "Spain", "Japan", "China", "India", "Brazil",
+            "Mexico", "Russia", "South Korea", "Netherlands", "Switzerland",
+            "Sweden", "Norway", "Denmark", "Belgium", "Austria", "Poland",
+            "Portugal", "Greece", "Turkey", "Thailand", "Singapore", "Malaysia",
+            "Indonesia", "Philippines", "Vietnam", "Egypt", "South Africa",
+            "Argentina", "Chile", "Colombia", "Peru", "New Zealand", "Ireland"
+        )
 
-        OutlinedTextField(
-            value = query,
-            onValueChange = { viewModel.updateQuery(it) },
-            placeholder = { Text("Search country") },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-            trailingIcon = {
-                if (query.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.updateQuery("") }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear")
+        var expanded by remember { mutableStateOf(false) }
+        val filteredCountries = countries.filter { 
+            it.contains(query, ignoreCase = true) 
+        }
+
+        // Search Dropdown
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { 
+                    viewModel.updateQuery(it)
+                    expanded = true
+                },
+                placeholder = { Text("Select or search country") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                trailingIcon = {
+                    Row {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { 
+                                viewModel.updateQuery("")
+                                expanded = false
+                            }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            }
+                        }
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    }
+                },
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
+            )
+
+            if (filteredCountries.isNotEmpty()) {
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    filteredCountries.forEach { country ->
+                        DropdownMenuItem(
+                            text = { Text(country) },
+                            onClick = {
+                                viewModel.updateQuery(country)
+                                viewModel.search(country)
+                                expanded = false
+                            }
+                        )
                     }
                 }
-            },
-            shape = RoundedCornerShape(24.dp),
-            modifier = Modifier.fillMaxWidth()
-        )
+            }
+        }
 
         Spacer(Modifier.height(12.dp))
 
-        Button(onClick = { viewModel.search(query) }) {
-            Text("Search")
+        OutlinedButton(
+            onClick = onDreamDestinationsClick,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("My Dream Destinations")
         }
 
         Spacer(Modifier.height(20.dp))
@@ -189,6 +245,14 @@ fun HomeScreen(
                                 Text(
                                     text = entry.currency,
                                     style = MaterialTheme.typography.bodyMedium
+                                )
+
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                Text(
+                                    text = "Est. $${entry.estimatedCost.toInt()}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }

@@ -10,5 +10,6 @@ data class CountryInfoEntity(
     val userId: String,
     val population: Long = 0L,
     val currency: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val estimatedCost: Double = 0.0
 )
